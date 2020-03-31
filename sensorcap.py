@@ -7,7 +7,7 @@
 import glob
 import os
 import sys
-# import pygame
+import pygame
 import matplotlib.pyplot as plt
 try:
     sys.path.append(glob.glob('/opt/carla/PythonAPI/carla/dist/carla-*%d.%d-%s.egg' % (sys.version_info.major, sys.version_info.minor, 'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
@@ -20,36 +20,34 @@ import random
 import time
 import numpy as np
 from numpy import savetxt
-import cv2
 
 IM_WIDTH = 800
 IM_HEIGHT = 600
-
-
-def show_img(image):
-    raw = np.array(image.raw_data).astype('uint8')
-    bgra = np.reshape(raw, (IM_HEIGHT, IM_WIDTH, 4))
-    bgr = bgra[:IM_HEIGHT,:IM_WIDTH, :3]
-    cv2.imshow("", bgr)
-    cv2.waitKey(1)
-    # plt.figure()
-    # plt.imshow(bgr[:,:,::-1]/255.0)
-    # plt.show(0.1)
 
 def show_img_pygame(image):
     array = np.frombuffer(image.raw_data, dtype=np.dtype('uint8'))
     array = np.reshape(array, (image.height, image.width, 4))
     array = array[:,:,:3]
     array = array[:,:,::-1]
-    pygame.surfarray.make_surface(array.swapaxes(0,1)) 
+    array = pygame.surfarray.make_surface(array.swapaxes(0,1))
+    ## pygame for display
+    display = pygame.display.set_mode(
+            (IM_WIDTH, IM_HEIGHT),
+            pygame.HWSURFACE | pygame.DOUBLEBUF)
+    pygame.display.set_caption('dataimg')
+    display.blit(array, (0,0))
+    pygame.display.flip()
 
 actor_list = []
 try:
+    pygame.init()
     client = carla.Client('localhost', 2000)
     client.set_timeout(2.0)
 
+    
+
     world = client.get_world()
-    print(client.get_available_maps())
+    #print(client.get_available_maps())
 
     blueprint_library = world.get_blueprint_library()
 
@@ -65,7 +63,7 @@ try:
     vehicle.apply_control(carla.VehicleControl(throttle=1.0, steer=0.0))
     # vehicle.set_autopilot(True)  # if you just wanted some NPCs to drive.
     location = vehicle.get_location()
-    print(vehicle.get_location())
+    #print(vehicle.get_location())
     actor_list.append(vehicle)
 
     # https://carla.readthedocs.io/en/latest/cameras_and_sensors
@@ -75,7 +73,7 @@ try:
     blueprint.set_attribute('image_size_x', '{0}'.format(IM_WIDTH))
     blueprint.set_attribute('image_size_y', '{0}'.format(IM_HEIGHT))
     blueprint.set_attribute('fov', '110')
-    blueprint.set_attribute('sensor_tick', '1.0')
+    blueprint.set_attribute('sensor_tick', '1.5')
 
     # Adjust sensor relative to vehicle
     spawn_point = carla.Transform(carla.Location(x=0.8, z=1.7))
@@ -88,7 +86,7 @@ try:
 
     # do something with this sensor
     # sensor.listen(lambda data: data.save_to_disk('_out/%06d.png' % data.frame))
-    sensor.listen(lambda data: show_img(data))
+    sensor.listen(lambda data: show_img_pygame(data))
 
     time.sleep(6)
 
