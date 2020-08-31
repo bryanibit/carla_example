@@ -45,6 +45,7 @@ def main():
         client.set_timeout(2.0)
 
         world = client.get_world()
+        
         #print(client.get_available_maps())
 
         blueprint_library = world.get_blueprint_library()
@@ -59,6 +60,7 @@ def main():
         # vehicle = world.spawn_actor(bp, transform)
 
         vehicle.apply_control(carla.VehicleControl(throttle=1.0, steer=0.0))
+        #vehicle.set_autopilot(True)
         # vehicle.set_autopilot(True)  # if you just wanted some NPCs to drive.
         location = vehicle.get_location()
         #print(vehicle.get_location())
@@ -95,9 +97,9 @@ def main():
         # do something with this sensor
         # sensor.listen(lambda data: data.save_to_disk('_out/%06d.png' % data.frame))
         # sensorrgb.listen(lambda data: show_img_pygame(data))
-        sensordepth.listen(lambda data: show_img_pygame(data, False))
+        sensorrgb.listen(lambda data: show_img_pygame(data, False))
 
-        time.sleep(6)
+        time.sleep(10)
     finally:
         print('destroying actors')
         for actor in actor_list:

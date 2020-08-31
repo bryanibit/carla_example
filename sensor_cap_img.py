@@ -35,8 +35,14 @@ try:
     world = client.get_world()
     blueprint_library = world.get_blueprint_library()
 
-    bp = blueprint_library.filter('model3')[0]
+    bp = random.choice(blueprint_library.filter('vehicle.bmw.*'))
+#    bp = blueprint_library.filter('model3')[0]
+    vehicles = blueprint_library.filter('vehicle.bmw.*')
+
     print(bp)
+    fours = [x for x in vehicles if int(x.get_attribute('number_of_wheels')) == 4]
+    for four in fours:
+        four.set_attribute('color', '255,0,0')
 
     spawn_point = random.choice(world.get_map().get_spawn_points())
 
@@ -66,7 +72,7 @@ try:
 
     # do something with this sensor
     sensor.listen(lambda data: process_img(data))
-
+    
     time.sleep(5)
 
 finally:
