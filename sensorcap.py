@@ -10,6 +10,7 @@ try:
     sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 except IndexError:
     pass
+
 import carla
 
 import random
@@ -20,7 +21,9 @@ from numpy import savetxt
 IM_WIDTH = 800
 IM_HEIGHT = 600
 
-def show_img_pygame(image):
+def show_img_pygame(image, depth_true = False):
+    if depth_true:
+        image.convert(carla.ColorConverter.Depth)
     array = np.frombuffer(image.raw_data, dtype=np.dtype('uint8'))
     array = np.reshape(array, (image.height, image.width, 4))
     array = array[:,:,:3]
@@ -63,25 +66,36 @@ def main():
 
         # https://carla.readthedocs.io/en/latest/cameras_and_sensors
         # get the blueprint for this sensor
-        blueprint = blueprint_library.find('sensor.camera.rgb')
+        camerargb = blueprint_library.find('sensor.camera.rgb')
         # change the dimensions of the image
-        blueprint.set_attribute('image_size_x', '{0}'.format(IM_WIDTH))
-        blueprint.set_attribute('image_size_y', '{0}'.format(IM_HEIGHT))
-        blueprint.set_attribute('fov', '110')
-        blueprint.set_attribute('sensor_tick', '1.5')
+        camerargb.set_attribute('image_size_x', '{0}'.format(IM_WIDTH))
+        camerargb.set_attribute('image_size_y', '{0}'.format(IM_HEIGHT))
+        camerargb.set_attribute('fov', '110')
+        camerargb.set_attribute('sensor_tick', '1.5')
 
+        #####################
+        cameradepth = blueprint_library.find('sensor.camera.depth')
+        # change the dimensions of the image
+        cameradepth.set_attribute('image_size_x', '{0}'.format(IM_WIDTH))
+        cameradepth.set_attribute('image_size_y', '{0}'.format(IM_HEIGHT))
+        cameradepth.set_attribute('fov', '110')
+        cameradepth.set_attribute('sensor_tick', '1.5')
         # Adjust sensor relative to vehicle
         spawn_point = carla.Transform(carla.Location(x=0.8, z=1.7))
+        #######################
 
         # spawn the sensor and attach to vehicle.
-        sensor = world.spawn_actor(blueprint, spawn_point, attach_to=vehicle)
+        sensordepth = world.spawn_actor(cameradepth, spawn_point, attach_to=vehicle)
+        sensorrgb = world.spawn_actor(camerargb, spawn_point, attach_to=vehicle)
 
         # add sensor to list of actors
-        actor_list.append(sensor)
+        actor_list.append(sensorrgb)
+        actor_list.append(sensordepth)
 
         # do something with this sensor
         # sensor.listen(lambda data: data.save_to_disk('_out/%06d.png' % data.frame))
-        sensor.listen(lambda data: show_img_pygame(data))
+        # sensorrgb.listen(lambda data: show_img_pygame(data))
+        sensordepth.listen(lambda data: show_img_pygame(data, False))
 
         time.sleep(6)
     finally:

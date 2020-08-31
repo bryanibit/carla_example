@@ -9,7 +9,7 @@
 # Allows controlling a vehicle with a keyboard. For a simpler and more
 # documented example, please take a look at tutorial.py.
 
-""" 
+"""
 Welcome to CARLA manual control.
 
 Use ARROWS or WASD keys for control.
@@ -184,7 +184,7 @@ class World(object):
 
     def restart(self):
         self.player_max_speed = 1.589
-        self.player_max_speed_fast = 1.589
+        self.player_max_speed_fast = 3.713
         # Keep same camera config if the camera manager exists.
         cam_index = self.camera_manager.index if self.camera_manager is not None else 0
         cam_pos_index = self.camera_manager.transform_index if self.camera_manager is not None else 0
